@@ -26,6 +26,24 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+private:
+	void MoveForward(float Value);
+	FVector Velocity;
+
+	// Force applied to the car when the throttle is fully down(N). 10m/s / s
+	UPROPERTY(EditAnywhere)
+	float MaxDrivingForce = 10000;
+
+	// The mass of the car (kg).
+	UPROPERTY(EditAnywhere)
+	float Mass = 1000;
+
+	// PEDAL
+	float Throttle;
+
+
+
+
 	
 	
 };
