@@ -4,6 +4,7 @@
 #include "Components/InputComponent.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
+#include "DrawDebugHelpers.h"
 
 
 // Sets default values
@@ -20,6 +21,24 @@ void ACGoKart::BeginPlay()
 	Super::BeginPlay();
 	
 }
+
+FString GetEnumText(ENetRole Role)
+{
+	switch (Role)
+	{
+	case ROLE_None:
+		return "None";
+	case ROLE_SimulatedProxy:
+		return "SimulatedProxy";
+	case ROLE_AutonomousProxy:
+		return "AutonomousProxy";
+	case ROLE_Authority:
+		return "Authority";
+	default:
+		return "Error";
+	}
+}
+
 
 // Called every frame
 void ACGoKart::Tick(float DeltaTime)
@@ -41,6 +60,9 @@ void ACGoKart::Tick(float DeltaTime)
 
 	// To meters / s
 	UpdateLocationFromVelocity(DeltaTime);
+
+	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::Blue, DeltaTime);
+
 
 }
 
@@ -89,8 +111,15 @@ void ACGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &ACGoKart::Server_MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ACGoKart::Server_MoveRight);
+	PlayerInputComponent->BindAxis("MoveForward", this, &ACGoKart::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ACGoKart::MoveRight);
+}
+
+void ACGoKart::MoveForward(float Value)
+{
+	Throttle = Value;
+	Server_MoveForward(Value);
+	
 }
 
 // Implementation is called on the server.
@@ -103,7 +132,12 @@ bool ACGoKart::Server_MoveForward_Validate(float Value)
 {
 	return true;
 }
-
+ 
+void ACGoKart::MoveRight(float Value)
+{
+	SteeringThrow = Value;
+	Server_MoveRight(Value);
+}
 
 void ACGoKart::Server_MoveRight_Implementation(float Value)
 {

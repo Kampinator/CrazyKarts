@@ -59,9 +59,10 @@ private:
 	// Server RPC function
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_MoveForward(float Value);
+	void MoveForward(float Value);
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_MoveRight(float Value);
-
+	void MoveRight(float Value);
 	FVector Velocity;
 
 	// PEDAL
