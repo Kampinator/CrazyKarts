@@ -23,12 +23,15 @@ void ACGoKart::BeginPlay()
 void ACGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
+	Force += GetResistance();
 	FVector Acceleration = Force / Mass;
 
 	// Add Acceleration to Velocity.
 	Velocity = Velocity + (Acceleration * DeltaTime);
+
+	
 
 	// Rotates car.
 	ApplyRotation(DeltaTime);
@@ -36,6 +39,12 @@ void ACGoKart::Tick(float DeltaTime)
 	// To meters / s
 	UpdateLocationFromVelocity(DeltaTime);
 
+}
+
+FVector ACGoKart::GetResistance()
+{
+	// Calculate AirResistance.  AirResistance = -Speed^2 * DragCoefficient
+	return -Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
 }
 
 void ACGoKart::ApplyRotation(float DeltaTime)

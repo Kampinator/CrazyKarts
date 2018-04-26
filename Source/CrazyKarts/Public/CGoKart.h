@@ -33,6 +33,7 @@ public:
 private:
 	void ApplyRotation(float DeltaTime);
 	void UpdateLocationFromVelocity(float DeltaTime);
+	FVector GetResistance();
 
 	// Force applied to the car when the throttle is fully down(N). 10m/s / s
 	UPROPERTY(EditAnywhere)
@@ -41,6 +42,10 @@ private:
 	// Maxium degrees that can be turned in second
 	UPROPERTY(EditAnywhere)
 	float MaxDegreesPerSecond = 90;
+
+	// Higher means more drag. kg/minutes
+	UPROPERTY(EditAnywhere)
+	float DragCoefficient = 16;
 
 	// The mass of the car (kg).
 	UPROPERTY(EditAnywhere)
