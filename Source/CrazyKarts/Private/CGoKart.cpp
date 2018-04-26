@@ -2,6 +2,7 @@
 
 #include "public/CGoKart.h"
 #include "Components/InputComponent.h"
+#include "Engine/World.h"
 
 
 // Sets default values
@@ -25,13 +26,14 @@ void ACGoKart::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
-	Force += GetResistance();
+	Force += GetAirResistance();
+	Force += GetRollingResistance();
 	FVector Acceleration = Force / Mass;
+
+
 
 	// Add Acceleration to Velocity.
 	Velocity = Velocity + (Acceleration * DeltaTime);
-
-	
 
 	// Rotates car.
 	ApplyRotation(DeltaTime);
@@ -41,11 +43,23 @@ void ACGoKart::Tick(float DeltaTime)
 
 }
 
-FVector ACGoKart::GetResistance()
+FVector ACGoKart::GetAirResistance()
 {
 	// Calculate AirResistance.  AirResistance = -Speed^2 * DragCoefficient
 	return -Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
 }
+
+FVector ACGoKart::GetRollingResistance()
+{
+	// Get Gravity. Divide by 100 to change it to 9.81. We negative it to push upwards.	
+	float AccelerationDueToGravity = -GetWorld()->GetGravityZ() / 100;
+	// Normal Force is basically opposite of gravity.
+	float NormalForce = Mass * AccelerationDueToGravity;
+	// Coefficient has specific values. Can check them from wikipedia.
+	return -Velocity.GetSafeNormal() * RollingResistanceCoefficient * NormalForce;
+}
+
+
 
 void ACGoKart::ApplyRotation(float DeltaTime)
 {

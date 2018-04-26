@@ -33,7 +33,8 @@ public:
 private:
 	void ApplyRotation(float DeltaTime);
 	void UpdateLocationFromVelocity(float DeltaTime);
-	FVector GetResistance();
+	FVector GetAirResistance();
+	FVector GetRollingResistance();
 
 	// Force applied to the car when the throttle is fully down(N). 10m/s / s
 	UPROPERTY(EditAnywhere)
@@ -46,6 +47,10 @@ private:
 	// Higher means more drag. kg/minutes
 	UPROPERTY(EditAnywhere)
 	float DragCoefficient = 16;
+
+	// Higher means more rolling resistance
+	UPROPERTY(EditAnywhere)
+	float RollingResistanceCoefficient = 0.115;
 
 	// The mass of the car (kg).
 	UPROPERTY(EditAnywhere)
