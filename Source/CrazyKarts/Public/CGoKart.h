@@ -60,6 +60,7 @@ private:
 	void Server_MoveRight(float Value);
 	void MoveRight(float Value);
 	
+	UPROPERTY(Replicated)
 	FVector Velocity;
 	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTransform)
 	FTransform ReplicatedTransform;
@@ -67,8 +68,11 @@ private:
 	UFUNCTION()
 	void OnRep_ReplicatedTransform();
 
+
 	// PEDAL
+	UPROPERTY(Replicated)
 	float Throttle;
+	UPROPERTY(Replicated)
 	float SteeringThrow;
 
 public:

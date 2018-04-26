@@ -12,6 +12,9 @@ void ACGoKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetim
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACGoKart, ReplicatedTransform);
+	DOREPLIFETIME(ACGoKart, Velocity);
+	DOREPLIFETIME(ACGoKart, Throttle);
+	DOREPLIFETIME(ACGoKart, SteeringThrow);
 }
 
 // Sets default values
