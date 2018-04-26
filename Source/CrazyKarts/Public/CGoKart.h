@@ -23,12 +23,13 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-	void MoveForward(float Value);
-	FVector Velocity;
+	void UpdateLocationFromVelocity(float DeltaTime);
 
 	// Force applied to the car when the throttle is fully down(N). 10m/s / s
 	UPROPERTY(EditAnywhere)
@@ -38,8 +39,14 @@ private:
 	UPROPERTY(EditAnywhere)
 	float Mass = 1000;
 
+	void MoveForward(float Value);
+	FVector Velocity;
+
 	// PEDAL
 	float Throttle;
+
+public:
+
 
 
 

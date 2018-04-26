@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "CGoKart.h"
+#include "public/CGoKart.h"
 #include "Components/InputComponent.h"
 
 
@@ -23,19 +23,27 @@ void ACGoKart::BeginPlay()
 void ACGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 	
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
-
 	FVector Acceleration = Force / Mass;
 
 	// Add Acceleration to Velocity.
 	Velocity = Velocity + (Acceleration * DeltaTime);
 
 	// To meters / s
-	FVector Translation = Velocity * 100 * DeltaTime;
-	AddActorWorldOffset(Translation);
+	UpdateLocationFromVelocity(DeltaTime);
 
+}
+
+void ACGoKart::UpdateLocationFromVelocity(float DeltaTime)
+{
+	FVector Translation = Velocity * 100 * DeltaTime;
+	FHitResult TranslationHitResult;
+	AddActorWorldOffset(Translation, true, &TranslationHitResult);
+	if (TranslationHitResult.IsValidBlockingHit())
+	{
+		Velocity = FVector(0, 0, 0);
+	}
 }
 
 // Called to bind functionality to input
