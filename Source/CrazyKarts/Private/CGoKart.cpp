@@ -7,6 +7,14 @@
 #include "DrawDebugHelpers.h"
 
 
+
+void ACGoKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACGoKart, ReplicatedLocation);
+	DOREPLIFETIME(ACGoKart, ReplicatedRotation);
+}
+
 // Sets default values
 ACGoKart::ACGoKart()
 {
@@ -19,6 +27,7 @@ ACGoKart::ACGoKart()
 void ACGoKart::BeginPlay()
 {
 	Super::BeginPlay();
+	bReplicates = true;
 	
 }
 
@@ -60,6 +69,18 @@ void ACGoKart::Tick(float DeltaTime)
 
 	// To meters / s
 	UpdateLocationFromVelocity(DeltaTime);
+
+	if (HasAuthority())
+	{
+		ReplicatedLocation = GetActorLocation();
+		ReplicatedRotation = GetActorRotation();
+	}
+	else 
+	{
+		SetActorLocation(ReplicatedLocation);
+		SetActorRotation(ReplicatedRotation);
+	}
+
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::Blue, DeltaTime);
 

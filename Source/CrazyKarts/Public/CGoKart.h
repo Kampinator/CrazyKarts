@@ -23,10 +23,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-
-
-	
-
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -63,7 +59,13 @@ private:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_MoveRight(float Value);
 	void MoveRight(float Value);
+	
 	FVector Velocity;
+	UPROPERTY(Replicated)
+	FVector ReplicatedLocation;
+
+	UPROPERTY(Replicated)
+	FRotator ReplicatedRotation;
 
 	// PEDAL
 	float Throttle;
