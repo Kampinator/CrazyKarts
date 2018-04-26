@@ -23,27 +23,36 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+
+
 	
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
+	void ApplyRotation(float DeltaTime);
 	void UpdateLocationFromVelocity(float DeltaTime);
 
 	// Force applied to the car when the throttle is fully down(N). 10m/s / s
 	UPROPERTY(EditAnywhere)
 	float MaxDrivingForce = 10000;
 
+	// Maxium degrees that can be turned in second
+	UPROPERTY(EditAnywhere)
+	float MaxDegreesPerSecond = 90;
+
 	// The mass of the car (kg).
 	UPROPERTY(EditAnywhere)
 	float Mass = 1000;
 
 	void MoveForward(float Value);
+	void MoveRight(float Value);
 	FVector Velocity;
 
 	// PEDAL
 	float Throttle;
+	float SteeringThrow;
 
 public:
 

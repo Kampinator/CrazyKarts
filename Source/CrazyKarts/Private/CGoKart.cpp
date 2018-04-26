@@ -30,9 +30,22 @@ void ACGoKart::Tick(float DeltaTime)
 	// Add Acceleration to Velocity.
 	Velocity = Velocity + (Acceleration * DeltaTime);
 
+	// Rotates car.
+	ApplyRotation(DeltaTime);
+
 	// To meters / s
 	UpdateLocationFromVelocity(DeltaTime);
 
+}
+
+void ACGoKart::ApplyRotation(float DeltaTime)
+{
+	float RotationAngle = MaxDegreesPerSecond * DeltaTime * SteeringThrow;
+	FQuat RotationDelta(GetActorUpVector(), FMath::DegreesToRadians(RotationAngle));
+
+	// Rotate vector same amount as rotated the car. (basically what moves car forward)
+	Velocity = RotationDelta.RotateVector(Velocity);
+	AddActorWorldRotation(RotationDelta);
 }
 
 void ACGoKart::UpdateLocationFromVelocity(float DeltaTime)
@@ -52,11 +65,16 @@ void ACGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACGoKart::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ACGoKart::MoveRight);
 }
 
 void ACGoKart::MoveForward(float Value)
 {
 	Throttle = Value;
+}
 
+void ACGoKart::MoveRight(float Value)
+{
+	SteeringThrow = Value;
 }
 
