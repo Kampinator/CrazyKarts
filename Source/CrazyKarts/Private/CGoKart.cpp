@@ -11,8 +11,7 @@
 void ACGoKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ACGoKart, ReplicatedLocation);
-	DOREPLIFETIME(ACGoKart, ReplicatedRotation);
+	DOREPLIFETIME(ACGoKart, ReplicatedTransform);
 }
 
 // Sets default values
@@ -28,6 +27,10 @@ void ACGoKart::BeginPlay()
 {
 	Super::BeginPlay();
 	bReplicates = true;
+	if (HasAuthority())
+	{
+		NetUpdateFrequency = 1;
+	}
 	
 }
 
@@ -72,20 +75,20 @@ void ACGoKart::Tick(float DeltaTime)
 
 	if (HasAuthority())
 	{
-		ReplicatedLocation = GetActorLocation();
-		ReplicatedRotation = GetActorRotation();
+		ReplicatedTransform = GetActorTransform();		
 	}
-	else 
-	{
-		SetActorLocation(ReplicatedLocation);
-		SetActorRotation(ReplicatedRotation);
-	}
+
 
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::Blue, DeltaTime);
-
-
 }
+
+void ACGoKart::OnRep_ReplicatedTransform()
+{
+	SetActorTransform(ReplicatedTransform);
+}
+
+
 
 FVector ACGoKart::GetAirResistance()
 {
