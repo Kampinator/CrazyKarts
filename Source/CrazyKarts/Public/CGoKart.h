@@ -36,13 +36,13 @@ private:
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
 
-	// Force applied to the car when the throttle is fully down(N). 10m/s / s
+	// Max driving force (newtowns)
 	UPROPERTY(EditAnywhere)
 	float MaxDrivingForce = 10000;
 
-	// Maxium degrees that can be turned in second
+	// Minium radius of the car turning circle at full lock (meters)
 	UPROPERTY(EditAnywhere)
-	float MaxDegreesPerSecond = 90;
+	float MiniumTurningRadius = 10;
 
 	// Higher means more drag. kg/minutes
 	UPROPERTY(EditAnywhere)
@@ -56,8 +56,12 @@ private:
 	UPROPERTY(EditAnywhere)
 	float Mass = 1000;
 
-	void MoveForward(float Value);
-	void MoveRight(float Value);
+	// Server RPC function
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_MoveForward(float Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_MoveRight(float Value);
+
 	FVector Velocity;
 
 	// PEDAL

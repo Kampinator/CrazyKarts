@@ -3,6 +3,7 @@
 #include "public/CGoKart.h"
 #include "Components/InputComponent.h"
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values
@@ -63,8 +64,9 @@ FVector ACGoKart::GetRollingResistance()
 
 void ACGoKart::ApplyRotation(float DeltaTime)
 {
-	float RotationAngle = MaxDegreesPerSecond * DeltaTime * SteeringThrow;
-	FQuat RotationDelta(GetActorUpVector(), FMath::DegreesToRadians(RotationAngle));
+	float DeltaLocation = FVector::DotProduct(GetActorForwardVector(), Velocity) * DeltaTime;
+	float RotationAngle = DeltaLocation / MiniumTurningRadius * SteeringThrow;
+	FQuat RotationDelta(GetActorUpVector(), RotationAngle);
 
 	// Rotate vector same amount as rotated the car. (basically what moves car forward)
 	Velocity = RotationDelta.RotateVector(Velocity);
@@ -87,17 +89,28 @@ void ACGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &ACGoKart::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ACGoKart::MoveRight);
+	PlayerInputComponent->BindAxis("MoveForward", this, &ACGoKart::Server_MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ACGoKart::Server_MoveRight);
 }
 
-void ACGoKart::MoveForward(float Value)
+// Implementation is called on the server.
+void ACGoKart::Server_MoveForward_Implementation(float Value)
 {
 	Throttle = Value;
 }
 
-void ACGoKart::MoveRight(float Value)
+bool ACGoKart::Server_MoveForward_Validate(float Value)
+{
+	return true;
+}
+
+
+void ACGoKart::Server_MoveRight_Implementation(float Value)
 {
 	SteeringThrow = Value;
 }
 
+bool ACGoKart::Server_MoveRight_Validate(float Value)
+{
+	return FMath::Abs(Value) <= 1;
+}
