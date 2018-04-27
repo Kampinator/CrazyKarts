@@ -11,8 +11,7 @@
 void ACGoKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ACGoKart, ReplicatedTransform);
-	DOREPLIFETIME(ACGoKart, Velocity);
+	DOREPLIFETIME(ACGoKart, ServerState);
 	DOREPLIFETIME(ACGoKart, Throttle);
 	DOREPLIFETIME(ACGoKart, SteeringThrow);
 }
@@ -60,6 +59,18 @@ void ACGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (IsLocallyControlled())
+	{
+		FGoKartMove Move;
+		Move.DeltaTime = DeltaTime;
+		Move.SteeringThrow = SteeringThrow;
+		Move.Throttle = Throttle;
+		// TODO: Set time
+
+		Server_SendMove(Move);
+	}
+
+
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
 	Force += GetAirResistance();
 	Force += GetRollingResistance();
@@ -78,7 +89,10 @@ void ACGoKart::Tick(float DeltaTime)
 
 	if (HasAuthority())
 	{
-		ReplicatedTransform = GetActorTransform();		
+		// Server sets values to replicated struct.
+		ServerState.Transform = GetActorTransform();
+		ServerState.Velocity = Velocity;
+		/// TODO: Update last move
 	}
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::Blue, DeltaTime);
@@ -88,9 +102,10 @@ void ACGoKart::Tick(float DeltaTime)
 
 }
 
-void ACGoKart::OnRep_ReplicatedTransform()
+void ACGoKart::OnRep_ServerState()
 {
-	SetActorTransform(ReplicatedTransform);
+	SetActorTransform(ServerState.Transform);
+	Velocity = ServerState.Velocity;
 }
 
 
@@ -144,36 +159,31 @@ void ACGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MoveRight", this, &ACGoKart::MoveRight);
 }
 
-void ACGoKart::MoveForward(float Value)
-{
-	Throttle = Value;
-	Server_MoveForward(Value);
-	
-}
+
 
 // Implementation is called on the server.
-void ACGoKart::Server_MoveForward_Implementation(float Value)
+void ACGoKart::Server_SendMove_Implementation(FGoKartMove Move)
 {
-	Throttle = Value;
+	Throttle = Move.Throttle;
+	SteeringThrow = Move.SteeringThrow;
 }
 
-bool ACGoKart::Server_MoveForward_Validate(float Value)
+bool ACGoKart::Server_SendMove_Validate(FGoKartMove Move)
 {
+	/// TODO: Make better validation
 	return true;
 }
  
+
+void ACGoKart::MoveForward(float Value)
+{
+	Throttle = Value;
+
+}
+
 void ACGoKart::MoveRight(float Value)
 {
 	SteeringThrow = Value;
-	Server_MoveRight(Value);
 }
 
-void ACGoKart::Server_MoveRight_Implementation(float Value)
-{
-	SteeringThrow = Value;
-}
 
-bool ACGoKart::Server_MoveRight_Validate(float Value)
-{
-	return FMath::Abs(Value) <= 1;
-}
