@@ -55,7 +55,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-	void ApplyRotation(float DeltaTime);
+	void SimulateMove(FGoKartMove Move);
+	void ApplyRotation(float DeltaTime, float SteeringThrow);
 	void UpdateLocationFromVelocity(float DeltaTime);
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
@@ -103,9 +104,7 @@ private:
 
 
 	// PEDAL
-	UPROPERTY(Replicated)
 	float Throttle;
-	UPROPERTY(Replicated)
 	float SteeringThrow;
 
 public:

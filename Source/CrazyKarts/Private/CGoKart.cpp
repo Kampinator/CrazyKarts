@@ -12,8 +12,6 @@ void ACGoKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetim
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACGoKart, ServerState);
-	DOREPLIFETIME(ACGoKart, Throttle);
-	DOREPLIFETIME(ACGoKart, SteeringThrow);
 }
 
 // Sets default values
@@ -31,7 +29,7 @@ void ACGoKart::BeginPlay()
 	bReplicates = true;
 	if (HasAuthority())
 	{
-		NetUpdateFrequency = 1;
+
 	}
 	
 }
@@ -68,32 +66,11 @@ void ACGoKart::Tick(float DeltaTime)
 		// TODO: Set time
 
 		Server_SendMove(Move);
+		SimulateMove(Move);
 	}
 
 
-	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
-	Force += GetAirResistance();
-	Force += GetRollingResistance();
-	FVector Acceleration = Force / Mass;
 
-
-
-	// Add Acceleration to Velocity.
-	Velocity = Velocity + (Acceleration * DeltaTime);
-
-	// Rotates car.
-	ApplyRotation(DeltaTime);
-
-	// To meters / s
-	UpdateLocationFromVelocity(DeltaTime);
-
-	if (HasAuthority())
-	{
-		// Server sets values to replicated struct.
-		ServerState.Transform = GetActorTransform();
-		ServerState.Velocity = Velocity;
-		/// TODO: Update last move
-	}
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::Blue, DeltaTime);
 
@@ -128,7 +105,9 @@ FVector ACGoKart::GetRollingResistance()
 
 
 
-void ACGoKart::ApplyRotation(float DeltaTime)
+
+
+void ACGoKart::ApplyRotation(float DeltaTime, float SteeringThrow)
 {
 	float DeltaLocation = FVector::DotProduct(GetActorForwardVector(), Velocity) * DeltaTime;
 	float RotationAngle = DeltaLocation / MiniumTurningRadius * SteeringThrow;
@@ -164,8 +143,11 @@ void ACGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 // Implementation is called on the server.
 void ACGoKart::Server_SendMove_Implementation(FGoKartMove Move)
 {
-	Throttle = Move.Throttle;
-	SteeringThrow = Move.SteeringThrow;
+	SimulateMove(Move);
+	ServerState.LastMove = Move;
+	ServerState.Transform = GetActorTransform();
+	ServerState.Velocity = Velocity;
+	/// TODO: Update last move
 }
 
 bool ACGoKart::Server_SendMove_Validate(FGoKartMove Move)
@@ -174,6 +156,22 @@ bool ACGoKart::Server_SendMove_Validate(FGoKartMove Move)
 	return true;
 }
  
+void ACGoKart::SimulateMove(FGoKartMove Move)
+{
+	FVector Force = GetActorForwardVector() * MaxDrivingForce * Move.Throttle;
+	Force += GetAirResistance();
+	Force += GetRollingResistance();
+	FVector Acceleration = Force / Mass;
+
+	// Add Acceleration to Velocity.
+	Velocity = Velocity + (Acceleration * Move.DeltaTime);
+
+	// Rotates car.
+	ApplyRotation(Move.DeltaTime, Move.SteeringThrow);
+
+	// To meters / s
+	UpdateLocationFromVelocity(Move.DeltaTime);
+}
 
 void ACGoKart::MoveForward(float Value)
 {
