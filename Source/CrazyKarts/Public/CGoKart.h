@@ -17,6 +17,8 @@ struct FGoKartMove
 	UPROPERTY()
 	float DeltaTime;
 	UPROPERTY()
+	float Time;
+	UPROPERTY()
 	float TimeStamp;
 
 };
@@ -56,6 +58,9 @@ public:
 
 private:
 	void SimulateMove(FGoKartMove Move);
+	FGoKartMove CreateMove(float DeltaTime);
+
+
 	void ApplyRotation(float DeltaTime, float SteeringThrow);
 	void UpdateLocationFromVelocity(float DeltaTime);
 	FVector GetAirResistance();
@@ -94,18 +99,18 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
 	FGoKartState ServerState;
 
-	//FGoKartMove Server
-
-
 	FVector Velocity;
 
 	UFUNCTION()
 	void OnRep_ServerState();
 
-
 	// PEDAL
 	float Throttle;
 	float SteeringThrow;
+
+	TArray<FGoKartMove> UnAcknowledgedMoves;
+	void ClearAcknowledgedMoves(FGoKartMove Move);
+
 
 public:
 

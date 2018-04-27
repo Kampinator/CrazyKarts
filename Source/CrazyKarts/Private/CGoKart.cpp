@@ -59,14 +59,17 @@ void ACGoKart::Tick(float DeltaTime)
 
 	if (IsLocallyControlled())
 	{
-		FGoKartMove Move;
-		Move.DeltaTime = DeltaTime;
-		Move.SteeringThrow = SteeringThrow;
-		Move.Throttle = Throttle;
-		// TODO: Set time
+		FGoKartMove Move = CreateMove(DeltaTime);
+		if (!HasAuthority())
+		{
+			UnAcknowledgedMoves.Add(Move);
+			UE_LOG(LogTemp, Warning, TEXT("Que Length: %d"), UnAcknowledgedMoves.Num());
+		}
 
 		Server_SendMove(Move);
 		SimulateMove(Move);
+
+
 	}
 
 
@@ -83,6 +86,12 @@ void ACGoKart::OnRep_ServerState()
 {
 	SetActorTransform(ServerState.Transform);
 	Velocity = ServerState.Velocity;
+	ClearAcknowledgedMoves(ServerState.LastMove);
+
+	for (const FGoKartMove& Move : UnAcknowledgedMoves)
+	{
+		SimulateMove(Move);
+	}
 }
 
 
@@ -171,6 +180,30 @@ void ACGoKart::SimulateMove(FGoKartMove Move)
 
 	// To meters / s
 	UpdateLocationFromVelocity(Move.DeltaTime);
+}
+
+FGoKartMove ACGoKart::CreateMove(float DeltaTime)
+{
+	FGoKartMove Move;
+	Move.DeltaTime = DeltaTime;
+	Move.SteeringThrow = SteeringThrow;
+	Move.Throttle = Throttle;
+	Move.Time = GetWorld()->TimeSeconds;
+	return Move;
+}
+
+void ACGoKart::ClearAcknowledgedMoves(FGoKartMove LastMove)
+{
+	TArray<FGoKartMove> NewMoves;
+	for (const FGoKartMove& Move : UnAcknowledgedMoves)
+	{
+		if (Move.Time > LastMove.Time)
+		{
+			NewMoves.Add(Move);
+		}
+	}
+
+	UnAcknowledgedMoves = NewMoves;	
 }
 
 void ACGoKart::MoveForward(float Value)
