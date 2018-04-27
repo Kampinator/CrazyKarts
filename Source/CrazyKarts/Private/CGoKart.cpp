@@ -81,9 +81,11 @@ void ACGoKart::Tick(float DeltaTime)
 		ReplicatedTransform = GetActorTransform();		
 	}
 
-
-
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::Blue, DeltaTime);
+
+
+
+
 }
 
 void ACGoKart::OnRep_ReplicatedTransform()
