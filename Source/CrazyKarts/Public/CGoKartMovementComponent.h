@@ -50,6 +50,8 @@ public:
 	void SetThrottle(float Value);
 	void SetSteeringThrow(float Value);
 
+	FGoKartMove GetLastMove() { return LastMove;  }
+
 private:
 	FVector Velocity;
 
@@ -83,4 +85,5 @@ private:
 	UPROPERTY(EditAnywhere)
 	float Mass = 1000;
 	
+	FGoKartMove LastMove;
 };

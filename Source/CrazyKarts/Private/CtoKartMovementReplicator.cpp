@@ -38,22 +38,20 @@ void UCtoKartMovementReplicator::TickComponent(float DeltaTime, ELevelTick TickT
 
 	if (MovementComponent == nullptr) return;
 
+	FGoKartMove LastMove = MovementComponent->GetLastMove();
+
 	// We are client controlling our own pawn.
 	if (GetOwnerRole() == ROLE_AutonomousProxy)
 	{
-		FGoKartMove Move = MovementComponent->CreateMove(DeltaTime);
-		MovementComponent->SimulateMove(Move);
-		UnAcknowledgedMoves.Add(Move);
-		Server_SendMove(Move);
+		UnAcknowledgedMoves.Add(LastMove);
+		Server_SendMove(LastMove);
 	}
 
 	//
 	// We are server and in control of the pawn
-	if (GetOwnerRole() == ROLE_Authority && GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
+	if (GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Trying to move as server"));
-		FGoKartMove Move = MovementComponent->CreateMove(DeltaTime);
-		Server_SendMove(Move);
+		UpdateServerState(LastMove);		
 	}
 
 	// Vehicle when playing that are seen when playing as a client.
@@ -63,15 +61,19 @@ void UCtoKartMovementReplicator::TickComponent(float DeltaTime, ELevelTick TickT
 	}
 }
 
+void UCtoKartMovementReplicator::UpdateServerState(const FGoKartMove& Move)
+{
+	ServerState.LastMove = Move;
+	ServerState.Transform = GetOwner()->GetActorTransform();
+	ServerState.Velocity = MovementComponent->GetVelocity();
+}
+
 // Implementation is called on the server.
 void UCtoKartMovementReplicator::Server_SendMove_Implementation(FGoKartMove Move)
 {
 	if (MovementComponent == nullptr) return;
 	MovementComponent->SimulateMove(Move);
-	ServerState.LastMove = Move;
-	ServerState.Transform = GetOwner()->GetActorTransform();
-	ServerState.Velocity = MovementComponent->GetVelocity();
-	/// TODO: Update last move
+	UpdateServerState(Move);
 }
 
 bool UCtoKartMovementReplicator::Server_SendMove_Validate(FGoKartMove Move)
@@ -106,3 +108,5 @@ void UCtoKartMovementReplicator::ClearAcknowledgedMoves(FGoKartMove LastMove)
 
 	UnAcknowledgedMoves = NewMoves;
 }
+
+

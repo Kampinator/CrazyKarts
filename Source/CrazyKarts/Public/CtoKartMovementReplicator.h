@@ -51,7 +51,8 @@ public:
 private:
 	UPROPERTY()
 	UCGoKartMovementComponent* MovementComponent;
-	
 	TArray<FGoKartMove> UnAcknowledgedMoves;
 	void ClearAcknowledgedMoves(FGoKartMove Move);
+
+	void UpdateServerState(const FGoKartMove& Move);
 };

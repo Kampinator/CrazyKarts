@@ -22,10 +22,6 @@ void ACGoKart::BeginPlay()
 {
 	Super::BeginPlay();
 	bReplicates = true;
-	if (HasAuthority())
-	{
-
-	}	
 }
 
 FString GetEnumText(ENetRole Role)
@@ -50,8 +46,6 @@ FString GetEnumText(ENetRole Role)
 void ACGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
- 
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::Blue, DeltaTime);
 }
 
