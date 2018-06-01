@@ -4,36 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "CGoKartMovementComponent.h"
+#include "CtoKartMovementReplicator.h"
 #include "CGoKart.generated.h"
 
-USTRUCT()
-struct FGoKartMove
-{
-	GENERATED_USTRUCT_BODY()
-	UPROPERTY()
-	float Throttle;
-	UPROPERTY()
-	float SteeringThrow;
-	UPROPERTY()
-	float DeltaTime;
-	UPROPERTY()
-	float Time;
-	UPROPERTY()
-	float TimeStamp;
 
-};
 
-USTRUCT()
-struct FGoKartState
-{
-	GENERATED_USTRUCT_BODY()
-	UPROPERTY()
-	FGoKartMove LastMove;
-	UPROPERTY()
-	FVector Velocity;
-	UPROPERTY()
-	FTransform Transform;
-};
+
 
 
 UCLASS()
@@ -57,62 +34,17 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-	void SimulateMove(FGoKartMove Move);
-	FGoKartMove CreateMove(float DeltaTime);
-
-
-	void ApplyRotation(float DeltaTime, float SteeringThrow);
-	void UpdateLocationFromVelocity(float DeltaTime);
-	FVector GetAirResistance();
-	FVector GetRollingResistance();
-
-	// Max driving force (newtowns)
-	UPROPERTY(EditAnywhere)
-	float MaxDrivingForce = 10000;
-
-	// Minium radius of the car turning circle at full lock (meters)
-	UPROPERTY(EditAnywhere)
-	float MiniumTurningRadius = 10;
-
-	// Higher means more drag. kg/minutes
-	UPROPERTY(EditAnywhere)
-	float DragCoefficient = 16;
-
-	// Higher means more rolling resistance
-	UPROPERTY(EditAnywhere)
-	float RollingResistanceCoefficient = 0.115;
-
-	// The mass of the car (kg).
-	UPROPERTY(EditAnywhere)
-	float Mass = 1000;
-
-	// Server RPC function
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SendMove(FGoKartMove Move);
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 
 
+	UPROPERTY(VisibleAnywhere)
+	class UCGoKartMovementComponent* MovementComp;
 
+	UPROPERTY(VisibleAnywhere)
+	class UCtoKartMovementReplicator* ReplicatorComp;
 
-	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
-	FGoKartState ServerState;
-
-	FVector Velocity;
-
-	UFUNCTION()
-	void OnRep_ServerState();
-
-	// PEDAL
-	float Throttle;
-	float SteeringThrow;
-
-	TArray<FGoKartMove> UnAcknowledgedMoves;
-	void ClearAcknowledgedMoves(FGoKartMove Move);
-
-
-public:
 
 
 
