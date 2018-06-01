@@ -57,21 +57,20 @@ void ACGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsLocallyControlled())
+	if (Role == ROLE_AutonomousProxy)
 	{
 		FGoKartMove Move = CreateMove(DeltaTime);
-		if (!HasAuthority())
-		{
-			UnAcknowledgedMoves.Add(Move);
-			UE_LOG(LogTemp, Warning, TEXT("Que Length: %d"), UnAcknowledgedMoves.Num());
-		}
-
-		Server_SendMove(Move);
 		SimulateMove(Move);
-
-
+		UnAcknowledgedMoves.Add(Move);
+		Server_SendMove(Move);
 	}
 
+	// We are server and in control of the pawn
+	if (Role == ROLE_Authority && GetRemoteRole() == ROLE_SimulatedProxy)
+	{
+		FGoKartMove Move = CreateMove(DeltaTime);
+		Server_SendMove(Move);
+	}
 
 
 
@@ -82,17 +81,7 @@ void ACGoKart::Tick(float DeltaTime)
 
 }
 
-void ACGoKart::OnRep_ServerState()
-{
-	SetActorTransform(ServerState.Transform);
-	Velocity = ServerState.Velocity;
-	ClearAcknowledgedMoves(ServerState.LastMove);
 
-	for (const FGoKartMove& Move : UnAcknowledgedMoves)
-	{
-		SimulateMove(Move);
-	}
-}
 
 
 
@@ -165,6 +154,19 @@ bool ACGoKart::Server_SendMove_Validate(FGoKartMove Move)
 	return true;
 }
  
+void ACGoKart::OnRep_ServerState()
+{
+	SetActorTransform(ServerState.Transform);
+	Velocity = ServerState.Velocity;
+	ClearAcknowledgedMoves(ServerState.LastMove);
+
+	for (const FGoKartMove& Move : UnAcknowledgedMoves)
+	{
+		SimulateMove(Move);
+	}
+}
+
+
 void ACGoKart::SimulateMove(FGoKartMove Move)
 {
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Move.Throttle;
